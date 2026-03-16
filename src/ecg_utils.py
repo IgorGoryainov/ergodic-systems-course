@@ -61,10 +61,12 @@ def clean_reports(df, n_reports=18):
     present = [col for col in report_cols if col in df.columns]
 
     result = df.copy()
+    # Use apply + explicit str() to stay compatible with pandas 1.x and 2.x.
+    # DataFrame.agg(" ".join, axis=1) receives raw floats for NaN cells in
+    # pandas 2.x even after .astype(str), causing a TypeError.
     result["report"] = (
         result[present]
-        .astype(str)
-        .agg(" ".join, axis=1)
+        .apply(lambda row: " ".join(str(v) for v in row), axis=1)
         .str.replace(r"\bnan\b", "", regex=True)
         .str.replace(r"\s+", " ", regex=True)
         .str.strip()
